@@ -3,20 +3,6 @@
 #include <matrix.hpp>
 #include "matrix_filter.hpp"
 
-void write_image_cli(Matrix<unsigned char>& out_mat) {
-    std::string file_out;
-    std::cout << "output img name: ";
-    std::cin >> file_out;
-
-    if (out_mat.write(file_out.data())) {
-        std::cout << "writen to " << file_out << '\n';
-    } 
-    else  {
-        std::cerr << "image wasn't written\n"; 
-    }
-}
-
-
 int main() {
     // Load Image
     std::string file_in = "in_lena.png";
@@ -28,24 +14,29 @@ int main() {
     }
     std::cout << "loaded with size: " << m.size() << '\n';
 
-
-    Matrix<float> float_m(m.rows(), m.cols(), m.channels());
-    matrix_filter::convert_to(m, float_m, 1/255.f);
-    Matrix<unsigned char> uchar_m(m.rows(), m.cols(), m.channels());
-    //matrix_filter::convert_to(float_m, uchar_m, static_cast<unsigned char>(255));
-    matrix_filter::convert_to(float_m, uchar_m, 255);
-    uchar_m.write("out.jpg");
-
-    /*
-    for (int i = 100; i < 150; ++i) {
-        for (int j = 100; j < 150; ++j) {
-            for (int c = 0; c < 3; ++c) {
-                std::cout << float_m(i, j, c) << ' ';
-            }
-            std::cout << ": :";
-        }
-        std::cout << "\n";
+    Matrix<float> kernel(3, 3, 1);
+    {
+        auto p = kernel.ptr(0);
+        p[0] = 1.f/16; p[1] = 2.f/16; p[2] = 1.f/16;
+        p[3] = 2.f/16; p[4] = 4.f/16; p[5] = 2.f/16;
+        p[6] = 1.f/16; p[7] = 2.f/16; p[8] = 1.f/16;
     }
-    */
+
+    auto res = matrix_filter::cross_correlation(m, kernel);
+    res.write("out.jpg");
+    
     return 0;
+}
+
+void write_image_cli(Matrix<unsigned char>& out_mat) {
+    std::string file_out;
+    std::cout << "output img name: ";
+    std::cin >> file_out;
+
+    if (out_mat.write(file_out.data())) {
+        std::cout << "writen to " << file_out << '\n';
+    } 
+    else  {
+        std::cerr << "image wasn't written\n"; 
+    }
 }

@@ -37,3 +37,13 @@ Out saturate_cast(In x) {
         return std::numeric_limits<Out>::max();
     return x;
 }
+
+
+// opencv BORDER_REFLECT_101 behavior
+int reflect(int val, int len) {
+    if (val < 0) 
+        return -val;
+    if (val >= len)
+        return len - (val - len) - 2;
+    return val;
+}
