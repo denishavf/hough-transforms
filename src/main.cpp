@@ -3,6 +3,8 @@
 #include <matrix.hpp>
 #include "matrix_filter.hpp"
 
+void blur(Matrix<float>& m);
+
 int main() {
     // Load Image
     std::string file_in = "in_lena.png";
@@ -14,16 +16,11 @@ int main() {
     }
     std::cout << "loaded with size: " << m.size() << '\n';
 
-    Matrix<float> kernel(3, 3, 1);
-    {
-        auto p = kernel.ptr(0);
-        p[0] = 1.f/16; p[1] = 2.f/16; p[2] = 1.f/16;
-        p[3] = 2.f/16; p[4] = 4.f/16; p[5] = 2.f/16;
-        p[6] = 1.f/16; p[7] = 2.f/16; p[8] = 1.f/16;
-    }
+    auto edges = matrix_filter::convert_to<float>(m, 1/255.f);
+    blur(edges);
 
-    auto res = matrix_filter::cross_correlation(m, kernel);
-    res.write("out.jpg");
+    auto edges_out = matrix_filter::convert_to<uchar>(edges, 255);
+    edges_out.write("out.jpg");
     
     return 0;
 }
@@ -39,4 +36,16 @@ void write_image_cli(Matrix<unsigned char>& out_mat) {
     else  {
         std::cerr << "image wasn't written\n"; 
     }
+}
+
+
+void blur(Matrix<float>& m) {
+    Matrix<float> kernel(3, 3, 1);
+    {
+        auto p = kernel.ptr(0);
+        p[0] = 1.f/16; p[1] = 2.f/16; p[2] = 1.f/16;
+        p[3] = 2.f/16; p[4] = 4.f/16; p[5] = 2.f/16;
+        p[6] = 1.f/16; p[7] = 2.f/16; p[8] = 1.f/16;
+    }
+    m = matrix_filter::cross_correlation(m, kernel);
 }

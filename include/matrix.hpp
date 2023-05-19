@@ -74,13 +74,21 @@ Matrix<scalar_t>::~Matrix() {
 template <typename scalar_t>
 Matrix<scalar_t>::Matrix(const Matrix<scalar_t>& src) {
     copy_dimensions(src);
-    std::copy(data_, data_ + size(), src.data_);
+    auto sz = size();
+    if (!allocate(sz)) {
+        std::cerr << "failed to allocate\n";
+    }
+    std::copy(src.data_, src.data_ + sz, data_);
 }
 
 template <typename scalar_t>
 Matrix<scalar_t>& Matrix<scalar_t>::operator=(const Matrix<scalar_t>& src) {
     copy_dimensions(src);
-    reallocate(size());
+    auto sz = size();
+    if (!reallocate(sz)) {
+        std::cerr << "failed to reallocate\n";
+    }
+    std::copy(src.data_, src.data_ + sz, data_);
     return *this;
 }
 
