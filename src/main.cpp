@@ -38,14 +38,7 @@ void write_image_cli(Matrix<unsigned char>& out_mat) {
     }
 }
 
-
 void blur(Matrix<float>& m) {
-    Matrix<float> kernel(3, 3, 1);
-    {
-        auto p = kernel.ptr(0);
-        p[0] = 1.f/16; p[1] = 2.f/16; p[2] = 1.f/16;
-        p[3] = 2.f/16; p[4] = 4.f/16; p[5] = 2.f/16;
-        p[6] = 1.f/16; p[7] = 2.f/16; p[8] = 1.f/16;
-    }
-    m = matrix_filter::cross_correlation(m, kernel);
+    auto gauss = matrix_filter::get_gaussian<float>(11, 3);
+    m = matrix_filter::cross_correlation(m, gauss);
 }

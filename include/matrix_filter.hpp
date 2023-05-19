@@ -68,6 +68,27 @@ namespace matrix_filter {
         return res;
     }
 
+    template <typename scalar_t>
+    Matrix<scalar_t> get_gaussian(int gauss_len, double sigma) {
+        Matrix<scalar_t> gauss(gauss_len, gauss_len, 1);
+        int gauss_radius = gauss_len / 2;
+
+        scalar_t sum = 0;
+        
+        for (int x = -gauss_radius; x <= gauss_radius; ++x) {
+            for (int y = -gauss_radius; y <= gauss_radius; ++y) {
+                double exponent = -(x*x + y*y) / (2 * sigma * sigma);
+                gauss(x + gauss_radius, y + gauss_radius) =
+                    exp(exponent) / (2 * M_PI * sigma*sigma);
+                sum += gauss(x + gauss_radius, y + gauss_radius);
+            }
+        }
+
+        gauss.for_each([sum](scalar_t a) {return a / sum;});
+
+        return gauss;
+    }
+
 }
 
 

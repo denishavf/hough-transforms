@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdlib>
+#include <functional>
+#include <algorithm>
 #include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -26,7 +28,8 @@ public:
 
     scalar_t& operator()(unsigned row, unsigned col, unsigned channel = 0);
     scalar_t operator()(unsigned row, unsigned col, unsigned channel = 0) const;
-    //TODO: arithmetic operators overloads
+
+    void for_each(std::function<scalar_t(scalar_t)> f); 
 
     unsigned size() const;
     unsigned rows() const;
@@ -133,6 +136,11 @@ scalar_t& Matrix<scalar_t>::operator()(unsigned row, unsigned col, unsigned chan
 template <typename scalar_t>
 scalar_t Matrix<scalar_t>::operator()(unsigned row, unsigned col, unsigned channel) const {
     return data_[row*cols_*channels_ + col*channels_ + channel];
+}
+
+template <typename scalar_t>
+void Matrix<scalar_t>::for_each(std::function<scalar_t(scalar_t)> f) {
+    std::for_each(data_, data_ + size(), f); 
 }
 
 template <typename scalar_t>
