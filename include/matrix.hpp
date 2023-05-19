@@ -8,7 +8,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-template <typename skalar_t>
+template <typename scalar_t>
 class Matrix {
 public:
     Matrix() = default;
@@ -18,12 +18,14 @@ public:
 
     Matrix(const Matrix& src);
     Matrix& operator=(const Matrix& src);
+    scalar_t* ptr(int pos);
+    const scalar_t* ptr(int pos) const;
 
     bool read(const char* filename, unsigned channels = 0);
     bool write(const char* filename);
 
-    skalar_t& operator()(unsigned row, unsigned col, unsigned channel = 0);
-    skalar_t operator()(unsigned row, unsigned col, unsigned channel = 0) const;
+    scalar_t& operator()(unsigned row, unsigned col, unsigned channel = 0);
+    scalar_t operator()(unsigned row, unsigned col, unsigned channel = 0) const;
     //TODO: arithmetic operators overloads
 
     unsigned size() const;
@@ -32,24 +34,21 @@ public:
     unsigned channels() const;
     bool empty() const;
 
-    template <typename new_skalar_t>
-    Matrix<new_skalar_t> convert_to(new_skalar_t alpha, new_skalar_t beta) const;
-
 private:
-    void copy_dimensions(const Matrix<skalar_t>& src);
+    void copy_dimensions(const Matrix<scalar_t>& src);
     bool allocate(unsigned size);
     bool reallocate(unsigned size);
 
 private:
-    skalar_t* data_ = nullptr;
+    scalar_t* data_ = nullptr;
     unsigned rows_ = 0;
     unsigned cols_ = 0;
     unsigned channels_ = 0;
 };
 
 
-template <typename skalar_t>
-Matrix<skalar_t>::Matrix(unsigned rows, unsigned cols, unsigned channels) :
+template <typename scalar_t>
+Matrix<scalar_t>::Matrix(unsigned rows, unsigned cols, unsigned channels) :
         rows_(rows),
         cols_(cols),
         channels_(channels) 
@@ -62,24 +61,24 @@ Matrix<skalar_t>::Matrix(unsigned rows, unsigned cols, unsigned channels) :
     std::fill(data_, data_ + size(), 0);
 }
 
-template <typename skalar_t>
-Matrix<skalar_t>::Matrix(char* filename) {
+template <typename scalar_t>
+Matrix<scalar_t>::Matrix(char* filename) {
     read(filename); 
 }
 
-template <typename skalar_t>
-Matrix<skalar_t>::~Matrix() {
+template <typename scalar_t>
+Matrix<scalar_t>::~Matrix() {
     free(data_);
 }
 
-template <typename skalar_t>
-Matrix<skalar_t>::Matrix(const Matrix<skalar_t>& src) {
+template <typename scalar_t>
+Matrix<scalar_t>::Matrix(const Matrix<scalar_t>& src) {
     copy_dimensions(src);
     std::copy(data_, data_ + size(), src.data_);
 }
 
-template <typename skalar_t>
-Matrix<skalar_t>& Matrix<skalar_t>::operator=(const Matrix<skalar_t>& src) {
+template <typename scalar_t>
+Matrix<scalar_t>& Matrix<scalar_t>::operator=(const Matrix<scalar_t>& src) {
     copy_dimensions(src);
     reallocate(size());
     return *this;
@@ -87,8 +86,8 @@ Matrix<skalar_t>& Matrix<skalar_t>::operator=(const Matrix<skalar_t>& src) {
 
 // If Matrix type is not unsinged char 
 // !!! create's a temporary Matrix<unsigned char>!!!
-template <typename skalar_t>
-bool Matrix<skalar_t>::read(const char* filename, unsigned channels) {     
+template <typename scalar_t>
+bool Matrix<scalar_t>::read(const char* filename, unsigned channels) {     
     int h = 0, w = 0, c = 0;
     data_ = stbi_load(filename, &w, &h, &c, channels);
 
@@ -105,8 +104,8 @@ bool Matrix<skalar_t>::read(const char* filename, unsigned channels) {
 
 // If Matrix type is not unsinged char 
 // !!! create's a temporary Matrix<unsigned char> for writing !!!
-template <typename skalar_t>
-bool Matrix<skalar_t>::write(const char* filename) {
+template <typename scalar_t>
+bool Matrix<scalar_t>::write(const char* filename) {
     int success = 0;
     success = stbi_write_jpg(
             filename, 
@@ -118,54 +117,64 @@ bool Matrix<skalar_t>::write(const char* filename) {
     return success;
 }
 
-template <typename skalar_t>
-skalar_t& Matrix<skalar_t>::operator()(unsigned row, unsigned col, unsigned channel) {
+template <typename scalar_t>
+scalar_t& Matrix<scalar_t>::operator()(unsigned row, unsigned col, unsigned channel) {
     return data_[row*cols_*channels_ + col*channels_ + channel];
 }
 
-template <typename skalar_t>
-skalar_t Matrix<skalar_t>::operator()(unsigned row, unsigned col, unsigned channel) const {
+template <typename scalar_t>
+scalar_t Matrix<scalar_t>::operator()(unsigned row, unsigned col, unsigned channel) const {
     return data_[row*cols_*channels_ + col*channels_ + channel];
 }
 
-template <typename skalar_t>
-unsigned Matrix<skalar_t>::size() const {
+template <typename scalar_t>
+scalar_t* Matrix<scalar_t>::ptr(int pos) {
+    return data_ + pos; 
+}
+
+template <typename scalar_t>
+const scalar_t* Matrix<scalar_t>::ptr(int pos) const {
+    return data_ + pos; 
+}
+
+template <typename scalar_t>
+unsigned Matrix<scalar_t>::size() const {
     return rows_ * cols_ * channels_;
 }
-template <typename skalar_t>
-unsigned Matrix<skalar_t>::rows() const {
+template <typename scalar_t>
+unsigned Matrix<scalar_t>::rows() const {
     return rows_;
 }
-template <typename skalar_t>
-unsigned Matrix<skalar_t>::cols() const {
+template <typename scalar_t>
+unsigned Matrix<scalar_t>::cols() const {
     return cols_;
 }
-template <typename skalar_t>
-unsigned Matrix<skalar_t>::channels() const {
+template <typename scalar_t>
+unsigned Matrix<scalar_t>::channels() const {
     return channels_;
 }
 
-template <typename skalar_t>
-bool Matrix<skalar_t>::empty() const {
+template <typename scalar_t>
+bool Matrix<scalar_t>::empty() const {
     return data_ == nullptr;
 }
 
-template <typename skalar_t>
-void Matrix<skalar_t>::copy_dimensions(const Matrix<skalar_t>& src) {
+template <typename scalar_t>
+void Matrix<scalar_t>::copy_dimensions(const Matrix<scalar_t>& src) {
     rows_ = src.rows_;
     cols_ = src.cols_;
     channels_ = src.channels_;
 }
 
-template <typename skalar_t>
-bool Matrix<skalar_t>::allocate(unsigned size) {
-    data_ = (skalar_t*) malloc(sizeof(skalar_t) * size); 
+template <typename scalar_t>
+bool Matrix<scalar_t>::allocate(unsigned size) {
+    data_ = (scalar_t*) malloc(sizeof(scalar_t) * size); 
     return data_;
 }
 
-template <typename skalar_t>
-bool Matrix<skalar_t>::reallocate(unsigned size) {
-    data_ = (skalar_t*) realloc(data_, sizeof(skalar_t) * size);
+template <typename scalar_t>
+bool Matrix<scalar_t>::reallocate(unsigned size) {
+    data_ = (scalar_t*) realloc(data_, sizeof(scalar_t) * size);
     return data_;
 }
 
