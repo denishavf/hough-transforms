@@ -1,13 +1,12 @@
 #include <iostream>
+#include <iomanip>
 
 #include <matrix.hpp>
-#include "matrix_filter.hpp"
-
-void blur(Matrix<float>& m);
+#include <matrix_filter.hpp>
 
 int main() {
     // Load Image
-    std::string file_in = "in_lena.png";
+    std::string file_in = "door_med_res.jpg";
 
     Matrix<unsigned char> m(file_in.data());
     if (m.empty()) {
@@ -16,29 +15,73 @@ int main() {
     }
     std::cout << "loaded with size: " << m.size() << '\n';
 
-    auto edges = matrix_filter::convert_to<float>(m, 1/255.f);
-    blur(edges);
+    // get grayscale of the image and convert it to float
+    auto gray = matrix_filter::grayscale(m).convert_to<float>(1/255.f);
 
-    auto edges_out = matrix_filter::convert_to<uchar>(edges, 255);
-    edges_out.write("out.jpg");
-    
+    // blur the image by convolving it with gaussian filter
+    auto gray_blurred = 
+        matrix_filter::cross_correlation(gray, matrix_filter::get_gaussian(5, 1));
+
+    // get image derivatives approximation convolving it with solbel filters
+    auto Gx = 
+        matrix_filter::cross_correlation(gray_blurred, matrix_filter::get_sobel_x());
+    auto Gy = 
+        matrix_filter::cross_correlation(gray_blurred, matrix_filter::get_sobel_y());
+
+    // get image gradient and gradient's direction
+    Matrix<float> G(Gx.rows(), Gx.cols(), 1);
+    Matrix<float> theta(Gx.rows(), Gx.cols(), 1);
+    matrix_filter::magnitude_angle(Gx, Gy, G, theta);
+
+    // this out edges of the image perfomring non-maximum suppression
+    auto nmsup = matrix_filter::non_maximum_suppression(G, theta);
+
+    nmsup.convert_to_abs<uchar>(255).write("out.jpg");
+
     return 0;
 }
 
-void write_image_cli(Matrix<unsigned char>& out_mat) {
-    std::string file_out;
-    std::cout << "output img name: ";
-    std::cin >> file_out;
 
-    if (out_mat.write(file_out.data())) {
-        std::cout << "writen to " << file_out << '\n';
-    } 
-    else  {
-        std::cerr << "image wasn't written\n"; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+    std::cout << std::setprecision(2);
+    for (int i = 0; i != 100; ++i) {
+        for (int j = 0 ; j != 100; ++j) {
+            std::cout << Gx(i, j) << ' ';
+        }
+        std::cout << '\n';
     }
-}
-
-void blur(Matrix<float>& m) {
-    auto gauss = matrix_filter::get_gaussian<float>(11, 3);
-    m = matrix_filter::cross_correlation(m, gauss);
-}
+    */

@@ -19,7 +19,9 @@ public:
 
     ~Timer() {
         auto stop = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+        auto duration = 
+            std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
         out_stream << message << duration.count() << " microseconds\n";
     }
 
@@ -30,7 +32,7 @@ private:
 };
 
 template <typename Out, typename In>
-Out saturate_cast(In x) {
+inline Out saturate_cast(In x) {
     if (x < std::numeric_limits<Out>::min())
         return std::numeric_limits<Out>::min();
     if (x > std::numeric_limits<Out>::max())
@@ -38,12 +40,12 @@ Out saturate_cast(In x) {
     return x;
 }
 
-
 // opencv BORDER_REFLECT_101 behavior
-int reflect(int val, int len) {
+inline int reflect(int val, int len) {
     if (val < 0) 
         return -val;
     if (val >= len)
         return len - (val - len) - 2;
     return val;
 }
+

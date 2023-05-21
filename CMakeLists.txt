@@ -13,14 +13,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # Include directory for header files
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# Include directory for third party
-include_directories(${CMAKE_SOURCE_DIR}third-party/stb) 
-link_directories(${CMAKE_SOURCE_DIR}/third-party/stb) 
-
 # Add the source files to the project
 add_executable(${CMAKE_PROJECT_NAME} 
-    src/main.cpp)
+    src/main.cpp
+    src/matrix_filter.cpp
+    src/stb_image.cpp)
 
+# Include directory for third party
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/third-party/stb)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
