@@ -30,5 +30,17 @@ namespace matrix_filter {
             Matrix<float>& magnitude,
             Matrix<float>& angle);
 
+    void double_treshold(
+        Matrix<uchar>& m,
+        uchar low, uchar high,
+        uchar weak = 25, uchar strong = 255);
+    void double_treshold(
+        Matrix<float>& m,
+        float low, float high,
+        float weak = 0.10, float strong = 1);
+
+    void hysteresis(
+        Matrix<float>& m,
+        float weak = 0.10, float strong = 1);
 }
 

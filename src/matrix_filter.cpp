@@ -201,3 +201,79 @@ Matrix<float> matrix_filter::non_maximum_suppression(
 
     return res;
 }
+
+void matrix_filter::double_treshold(
+        Matrix<uchar>& m,
+        uchar low, uchar high,
+        uchar weak, uchar strong) 
+{           
+    auto* p = m.ptr(0);
+    size_t sz = m.size();
+
+    for (size_t i = 0; i != sz; ++i) {
+        if (p[i] >= high) {
+            p[i] = strong;
+        } else if (p[i] >= low) {
+            p[i] = weak;
+        } else {
+            p[i] = 0;
+        }
+    }
+}
+
+void matrix_filter::double_treshold(
+        Matrix<float>& m,
+        float low, float high,
+        float weak, float strong) 
+{           
+    auto* p = m.ptr(0);
+    size_t sz = m.size();
+
+    for (size_t i = 0; i != sz; ++i) {
+        auto val = abs(p[i]);
+        if (val >= high) {
+            p[i] = strong;
+        } else if (val >= low) {
+            p[i] = weak;
+        } else {
+            p[i] = 0;
+        }
+    }
+}
+
+void matrix_filter::hysteresis(
+        Matrix<float>& m,
+        float weak, float strong) 
+{
+    auto rows = m.rows();
+    auto cols = m.cols();
+
+    const int dy[8] = {0, 1, 0, -1, -1, 1, -1, 1};    
+    const int dx[8] = {1, 0, -1, 0, 1, 1, -1, -1};
+
+    // potentionay leaws weak pixels at the borders
+    for (size_t y = 1; y < rows; ++y) {
+        for (size_t x = 1; x < cols; ++x) {
+            if (m(y, x) == weak) {
+
+                bool is_strong = false;
+                for (int i = 0; i < 8; ++i) {
+                    auto yy = y + dy[i];
+                    auto xx = x + dx[i];
+                    if (m(yy, xx) == strong) {
+                        is_strong = true;
+                        break;
+                    }
+                }
+
+                if (is_strong) {
+                    m(y, x) = strong;
+                } else {
+                    m(y, x) = 0;
+                }
+
+            }
+        }
+    }
+}
+
